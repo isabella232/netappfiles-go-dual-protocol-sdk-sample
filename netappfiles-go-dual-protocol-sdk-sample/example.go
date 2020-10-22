@@ -33,7 +33,7 @@ const (
 )
 
 var (
-	shouldCleanUp          bool   = true
+	shouldCleanUp          bool   = false
 	rootCACertFullFilePath string = "./rootca.cer" // Base64 encoded root ca certificate full file name
 	location               string = "westus"
 	resourceGroupName      string = "anf-smb-rg"

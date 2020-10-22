@@ -15,9 +15,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure-Samples/netappfiles-go-pool-change-sdk-sample/netappfiles-go-pool-change-sdk-sample/internal/iam"
-	"github.com/Azure-Samples/netappfiles-go-pool-change-sdk-sample/netappfiles-go-pool-change-sdk-sample/internal/uri"
-	"github.com/Azure-Samples/netappfiles-go-pool-change-sdk-sample/netappfiles-go-pool-change-sdk-sample/internal/utils"
+	"github.com/Azure-Samples/netappfiles-go-dual-protocol-sdk-sample/netappfiles-go-dual-protocol-sdk-sample/internal/iam"
+	"github.com/Azure-Samples/netappfiles-go-dual-protocol-sdk-sample/netappfiles-go-dual-protocol-sdk-sample/internal/uri"
+	"github.com/Azure-Samples/netappfiles-go-dual-protocol-sdk-sample/netappfiles-go-dual-protocol-sdk-sample/internal/utils"
 
 	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2020-06-01/netapp"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-10-01/resources"
@@ -247,7 +247,7 @@ func CreateANFCapacityPool(ctx context.Context, location, resourceGroupName, acc
 }
 
 // CreateANFVolume creates an ANF volume within a Capacity Pool
-func CreateANFVolume(ctx context.Context, location, resourceGroupName, accountName, poolName, volumeName, serviceLevel, subnetID, snapshotID, securityStyle string, protocolTypes []string, volumeUsageQuota int64, unixReadOnly, unixReadWrite bool, tags map[string]*string, dataProtectionObject netapp.VolumePropertiesDataProtection) (netapp.Volume, error) {
+func CreateANFVolume(ctx context.Context, location, resourceGroupName, accountName, poolName, volumeName, serviceLevel, subnetID, snapshotID string, protocolTypes []string, volumeUsageQuota int64, unixReadOnly, unixReadWrite bool, tags map[string]*string, dataProtectionObject netapp.VolumePropertiesDataProtection, securityStyle netapp.SecurityStyle) (netapp.Volume, error) {
 
 	if len(protocolTypes) > 2 {
 		return netapp.Volume{}, fmt.Errorf("maximum of two protocol types are supported")
@@ -284,9 +284,9 @@ func CreateANFVolume(ctx context.Context, location, resourceGroupName, accountNa
 			Rules: &[]netapp.ExportPolicyRule{
 				{
 					AllowedClients: to.StringPtr("0.0.0.0/0"),
-					Cifs:           to.BoolPtr(map[bool]bool{true: true, false: false}[utils.Contains(protocolType, cifs)]),
-					Nfsv3:          to.BoolPtr(map[bool]bool{true: true, false: false}[utils.Contains(protocolType, nfsv3)]),
-					Nfsv41:         to.BoolPtr(map[bool]bool{true: true, false: false}[utils.Contains(protocolType, nfsv41)]),
+					Cifs:           to.BoolPtr(map[bool]bool{true: true, false: false}[utils.Contains(protocolTypes, cifs)]),
+					Nfsv3:          to.BoolPtr(map[bool]bool{true: true, false: false}[utils.Contains(protocolTypes, nfsv3)]),
+					Nfsv41:         to.BoolPtr(map[bool]bool{true: true, false: false}[utils.Contains(protocolTypes, nfsv41)]),
 					RuleIndex:      to.Int32Ptr(1),
 					UnixReadOnly:   to.BoolPtr(unixReadOnly),
 					UnixReadWrite:  to.BoolPtr(unixReadWrite),
@@ -304,7 +304,7 @@ func CreateANFVolume(ctx context.Context, location, resourceGroupName, accountNa
 		UsageThreshold: to.Int64Ptr(volumeUsageQuota),
 		CreationToken:  to.StringPtr(volumeName),
 		DataProtection: &dataProtectionObject,
-		SecurityStyle:  to.StringPtr(securityStyle),
+		SecurityStyle:  securityStyle,
 	}
 
 	future, err := volumeClient.CreateOrUpdate(

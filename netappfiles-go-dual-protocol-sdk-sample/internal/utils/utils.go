@@ -63,19 +63,19 @@ func ReadAzureBasicInfoJSON(path string) (*models.AzureBasicInfo, error) {
 }
 
 // ReadRootCACert reads the Azure Authentication json file json file and unmarshals it.
-func ReadRootCACert(certPath string) (string, error) {
+func ReadRootCACert(certPath string) ([]byte, error) {
 	var err error
 
 	if _, err = os.Stat(certPath); os.IsNotExist(err) {
-		return "", err
+		return nil, err
 	}
 
 	base64CertInfo, err := ioutil.ReadFile(certPath)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return string(base64CertInfo), nil
+	return base64CertInfo, nil
 }
 
 // FindInSlice returns index greater than -1 and true if item is found

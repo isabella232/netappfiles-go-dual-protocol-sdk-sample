@@ -5,20 +5,20 @@ languages:
 products:
 - azure
 - azure-netapp-files
-description: "This project demonstrates how to create SMB volumes using Microsoft.NetApp resource provider Go SDK."
+description: "This project demonstrates how to create a dual protocol Volume (SMB+NFSv3) volumes using Microsoft.NetApp resource provider from Azure Go SDK."
 ---
 
 
-# Azure NetAppFiles SMB SDK Sample for Go
+# Azure NetAppFiles Dual Protocol SDK Sample for Go
 
-This project demonstrates how to create SMB volumes using Microsoft.NetApp resource provider Go SDK.
+This project demonstrates how to create a dual protocol Volume (SMB+NFSv3) volumes using Microsoft.NetApp resource provider from Azure Go SDK.
 
 In this sample application we perform the following operations:
 
 * Creation
   * NetApp Files Account
   * Capacity Pool
-  * SMB Volume
+  * Dual Protocol (SMB+NFSv3) Volume
 * Deletions (when cleanup variable is set to true)
   * Volume
   * Capacity Pool
@@ -29,12 +29,14 @@ If you don't already have a Microsoft Azure subscription, you can get a FREE tri
 ## Prerequisites
 
 1. Go installed \(if not installed yet, follow the [official instructions](https://golang.org/dl/)\)
-1. Azure Subscription
-1. Subscription needs to be whitelisted for Azure NetApp Files. For more information, please refer to [this](https://docs.microsoft.com/azure/azure-netapp-files/azure-netapp-files-register#waitlist) document.
-1. Resource Group created
-1. Virtual Network with a delegated subnet to Microsoft.Netapp/volumes resource. For more information, please refer to [Guidelines for Azure NetApp Files network planning](https://docs.microsoft.com/en-us/azure/azure-netapp-files/azure-netapp-files-network-topologies)
-1. Adjust variable contents within `var()` block at `example.go` file to match your environment
-1. For this sample Go console application work, we need to authenticate and the chosen method for this sample is using service principals.
+2. Make sure you comply with the items described [here](https://docs.microsoft.com/en-us/azure/azure-netapp-files/create-volumes-dual-protocol#considerations) before you proceed.
+3. Have the Root CA certificate used by the AD Domain Controller and the Windows clients exported as Base64 encoded X.509 certificate file, if unsure, steps 2-3 in [this](https://docs.microsoft.com/en-us/azure/azure-netapp-files/create-volumes-dual-protocol#upload-active-directory-certificate-authority-public-root-certificate) document shows how to export the certificate.
+4. Azure Subscription
+5. Subscription needs to be enabled for Azure NetApp Files. For more information, please refer to [this](https://docs.microsoft.com/azure/azure-netapp-files/azure-netapp-files-register#waitlist) document.
+6. Resource Group created
+7. Virtual Network with a delegated subnet to Microsoft.Netapp/volumes resource. For more information, please refer to [Guidelines for Azure NetApp Files network planning](https://docs.microsoft.com/en-us/azure/azure-netapp-files/azure-netapp-files-network-topologies)
+8. Adjust variable contents within `var()` block at `example.go` file to match your environment
+9. For this sample Go console application work, we need to authenticate and the chosen method for this sample is using service principals.
    1. For this sample Go console application work, we need to authenticate and the chosen method for this sample is using service principals:
     * Within an [Azure Cloud Shell](https://docs.microsoft.com/en-us/azure/cloud-shell/quickstart) session, make sure you're logged on at the subscription where you want to be associated with the service principal by default
 
@@ -75,7 +77,7 @@ If you don't already have a Microsoft Azure subscription, you can get a FREE tri
 
 ## What is example.go doing
 
-This sample project is focused on demonstrating how to create an SMB enabled volume, similar to other examples, the authentication method is based on a service principal, this project will create one ANF Account with an Active Directory object, one capacity pool and finally, a single SMB volume using Standard service level tier. When executing this application, the user will be prompted to provide the password for the Active Directory User that have permissions to domain join computers in AD.
+This sample project is focused on demonstrating how to create a Dual Protocol enabled Volume (SMB and NFSv3). Authentication method is based on a service principal and this project will create one ANF Account with an Active Directory object using the Root CA certificate mentioned in the prerequisites, one capacity pool and finally, a single SMB+NFSv3 volume using Standard service level tier. When executing this application, the user will be prompted to provide the password for the Active Directory User that have permissions to domain join computers in AD.
 
 In addition, we use some non-sensitive information from the *file-based authentication* file that in the initial stages we get the subscription ID and this is used for the test we perform to check if the subnet provided exists before starting creating any ANF resources, failing execution if they're missing.
 
@@ -90,6 +92,9 @@ You will notice that the clean up process uses a function called `WaitForNoANFRe
 
 | File/folder                 | Description                                                                                                      |
 |-----------------------------|------------------------------------------------------------------------------------------------------------------|
+| `.github\CODE_OF_CONDUCT.md`        | Microsoft's Open Source Code of Conduct.                                                                         |
+| `.github\ISSUE_TEMPLATE.md`        | GitHub's issue report that describes necessary info while opening a new issue                                                                         |
+| `.github\PULL_REQUEST_TEMPLATE.md`        | GitHub's pull request template.                                                                         |
 | `media\`                       | Folder that contains screenshots.                                                                                              |
 | `netappfiles-go-dual-protocol-sdk-sample\`                       | Sample source code folder.                                                                                              |
 | `netappfiles-go-dual-protocol-sdk-sample\example.go`            | Sample main file.                                                                                                |
@@ -106,7 +111,6 @@ You will notice that the clean up process uses a function called `WaitForNoANFRe
 | `CONTRIBUTING.md`           | Guidelines for contributing to the sample.                                                                       |
 | `README.md`                 | This README file.                                                                                                |
 | `LICENSE`                   | The license for the sample.                                                                                      |
-| `CODE_OF_CONDUCT.md`        | Microsoft's Open Source Code of Conduct.                                                                         |
 
 ## How to run
 
@@ -144,6 +148,7 @@ Sample output
 ## References
 
 * [Create a dual-protocol (NFSv3 and SMB) volume for Azure NetApp Files](https://docs.microsoft.com/en-us/azure/azure-netapp-files/create-volumes-dual-protocol)
+* [Troubleshoot dual-protocol volumes](https://docs.microsoft.com/en-us/azure/azure-netapp-files/troubleshoot-dual-protocol-volumes)
 * [Authentication methods in the Azure SDK for Go](https://docs.microsoft.com/en-us/azure/go/azure-sdk-go-authorization)
 * [Azure SDK for Go Samples](https://github.com/Azure-Samples/azure-sdk-for-go-samples) - contains other resource types samples
 * [Resource limits for Azure NetApp Files](https://docs.microsoft.com/en-us/azure/azure-netapp-files/azure-netapp-files-resource-limits)

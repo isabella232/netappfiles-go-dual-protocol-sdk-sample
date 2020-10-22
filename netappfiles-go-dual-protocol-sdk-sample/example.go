@@ -16,6 +16,7 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"os"
 	"time"
@@ -28,12 +29,12 @@ import (
 )
 
 const (
-	virtualNetworksApiVersion string = "2019-09-01"
+	virtualNetworksAPIVersion string = "2019-09-01"
 )
 
 var (
-	shouldCleanUp          bool   = false
-	rootCACertFullFilePath string = "./rootca.cer" // Base64 encoded root ca certificate file name
+	shouldCleanUp          bool   = true
+	rootCACertFullFilePath string = "./rootca.cer" // Base64 encoded root ca certificate full file name
 	location               string = "westus"
 	resourceGroupName      string = "anf-smb-rg"
 	vnetResourceGroupName  string = "anf-smb-rg"
@@ -46,11 +47,11 @@ var (
 	volumeSizeBytes        int64  = 107374182400  // 100GiB (minimum volume size)
 	protocolTypes                 = []string{
 		"CIFS",
-		"NFSv3"
-	} // Multi-protocol is only supported with CIFS/NFSv3 combination at this time 
-	dualProtocolVolumeName string = fmt.Sprintf("SMB-Vol-%v-%v", anfAccountName, capacityPoolName)
-	sampleTags           = map[string]*string{
-		"Author":  to.StringPtr("ANF Go SMB SDK Sample"),
+		"NFSv3",
+	} // Multi-protocol is only supported with CIFS/NFSv3 combination at this time
+	dualProtocolVolumeName string = fmt.Sprintf("DualProtocol-Vol-%v", anfAccountName)
+	sampleTags                    = map[string]*string{
+		"Author":  to.StringPtr("ANF Go Dual Protocol (SMB/NFSv3) SDK Sample"),
 		"Service": to.StringPtr("Azure Netapp Files"),
 	}
 
@@ -61,10 +62,10 @@ var (
 	adFQDN                 = "anf.local" // FQDN of the Domain where the smb server will be created/domain joined
 	smbServerNamePrefix    = "pmc03"     // This needs to be maximum 10 characters in length and during the domain join process a random string gets appended.
 
-	exitCode       int
-	dualProtocolVolumeID    string = ""
-	capacityPoolID string = ""
-	acccountID     string = ""
+	exitCode             int
+	dualProtocolVolumeID string = ""
+	capacityPoolID       string = ""
+	acccountID           string = ""
 )
 
 func main() {
@@ -74,7 +75,7 @@ func main() {
 	// Cleanup and exit handling
 	defer func() { exit(cntx); os.Exit(exitCode) }()
 
-	utils.PrintHeader("Azure NetAppFiles Go SMB SDK Sample - sample application that creates an Dual protocol volume together with Account and Capacity Pool.")
+	utils.PrintHeader("Azure NetAppFiles Go Dual Protocol SDK Sample - sample application that creates a Dual Protocol Volume.")
 
 	// Getting Active Directory Identity's password
 	domainJoinUserPassword = utils.GetPassword("Please type Active Directory's user password that will domain join ANF's SMB server and press [ENTER]:")
@@ -102,7 +103,7 @@ func main() {
 
 	utils.ConsoleOutput(fmt.Sprintf("Checking if subnet %v exists.", subnetID))
 
-	_, err = sdkutils.GetResourceByID(cntx, subnetID, virtualNetworksApiVersion)
+	_, err = sdkutils.GetResourceByID(cntx, subnetID, virtualNetworksAPIVersion)
 	if err != nil {
 		if string(err.Error()) == "NotFound" {
 			utils.ConsoleOutput(fmt.Sprintf("error: subnet %v not found: %v", subnetID, err))
@@ -117,23 +118,26 @@ func main() {
 	// Azure NetApp Files Account creation
 	utils.ConsoleOutput("Creating Azure NetApp Files account...")
 
-	utils.ConsoleOutput(fmt.Sprintf("Loading %v certificate file...", rootCACertFullFilePath)
-	certContent, err = utils.ReadRootCACert(rootCACertFullFilePath)
+	utils.ConsoleOutput(fmt.Sprintf("Loading %v certificate file...", rootCACertFullFilePath))
+	certContent, err := utils.ReadRootCACert(rootCACertFullFilePath)
 	if err != nil {
 		utils.ConsoleOutput(fmt.Sprintf("an error ocurred reading root ca certificate file: %v", err))
 		exitCode = 1
 		return
 	}
 
+	utils.ConsoleOutput("Encoding certificate contents as base64 string...")
+	certBase64Content := base64.StdEncoding.EncodeToString(certContent)
+
 	// Building Active Directory List - please note that only one AD configuration is permitted per subscription and region
 	activeDirectories := []netapp.ActiveDirectory{
 		netapp.ActiveDirectory{
-			DNS: &dnsList,
-			Domain: &adFQDN,
-			Username: &domainJoinUserName,
-			Password: &domainJoinUserPassword,
-			SmbServerName: &smbServerNamePrefix,
-			ServerRootCACertificate: &certContent
+			DNS:                     &dnsList,
+			Domain:                  &adFQDN,
+			Username:                &domainJoinUserName,
+			Password:                &domainJoinUserPassword,
+			SmbServerName:           &smbServerNamePrefix,
+			ServerRootCACertificate: &certBase64Content,
 		},
 	}
 
@@ -178,13 +182,13 @@ func main() {
 		serviceLevel,
 		subnetID,
 		"",
-		"Ntfs"
 		protocolTypes,
 		volumeSizeBytes,
 		false,
 		false,
 		sampleTags,
 		netapp.VolumePropertiesDataProtection{}, // This empty object is provided as nil since dataprotection is not scope of this sample
+		netapp.SecurityStyle("Ntfs"),
 	)
 
 	if err != nil {
@@ -196,9 +200,9 @@ func main() {
 	dualProtocolVolumeID = *dualProtocolVolume.ID
 	utils.ConsoleOutput(fmt.Sprintf("Dual Protocol volume successfully created, resource id: %v", dualProtocolVolumeID))
 
-	// mountTargets := *dualProtocolVolume.MountTargets
-	// //*dualProtocolVolume.MountTargets[0].SmbServerFqdn
-	// utils.ConsoleOutput(fmt.Sprintf("\t====> SMB Server FQDN: %v", *mountTargets[0].SmbServerFqdn))
+	mountTargets := *dualProtocolVolume.MountTargets
+	utils.ConsoleOutput(fmt.Sprintf("\t====> SMB Server FQDN..: %v", *mountTargets[0].SmbServerFqdn))
+	utils.ConsoleOutput(fmt.Sprintf("\t====> NFS IP Address...: %v", *mountTargets[0].IPAddress))
 }
 
 func exit(cntx context.Context) {

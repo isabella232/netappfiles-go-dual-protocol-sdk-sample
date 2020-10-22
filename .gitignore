@@ -354,3 +354,5 @@ MigrationBackup/
 *.der
 *.pem
 *.pfx
+
+example.go

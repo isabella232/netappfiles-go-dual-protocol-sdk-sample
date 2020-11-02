@@ -348,3 +348,11 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+
+# Certificates
+*.cer
+*.der
+*.pem
+*.pfx
+
+example.go

@@ -11,7 +11,7 @@ description: "This project demonstrates how to create a dual protocol Volume (SM
 
 # Azure NetApp Files Dual Protocol SDK Sample for Go
 
-This project demonstrates how to create a dual protocol Volume (SMB+NFSv3) volumes using Microsoft.NetApp resource provider from Azure Go SDK.
+This project demonstrates how to create a dual protocol Volume (SMB+NFSv3) volumes using Microsoft.NetApp resource provider from Azure Go SDK. 
 
 In this sample application we perform the following operations:
 
@@ -31,7 +31,7 @@ If you don't already have a Microsoft Azure subscription, you can get a FREE tri
 1. Go installed \(if not installed yet, follow the [official instructions](https://golang.org/dl/)\).
 2. Make sure you comply with the [dual-protocol considerations](https://docs.microsoft.com/en-us/azure/azure-netapp-files/create-volumes-dual-protocol#considerations) before you proceed.
 3. Have the Root CA certificate used by the AD Domain Controller and the Windows clients exported as Base64 encoded X.509 certificate file, if unsure, steps 2-3 in [this](https://docs.microsoft.com/en-us/azure/azure-netapp-files/create-volumes-dual-protocol#upload-active-directory-certificate-authority-public-root-certificate) document shows how to export the certificate.
-4. Azure Subscription
+4. Azure Subscription.
 5. Subscription needs to be enabled for Azure NetApp Files. For more information, see [Register for Azure NetApp Files](https://docs.microsoft.com/azure/azure-netapp-files/azure-netapp-files-register#waitlist).
 6. Resource Group created.
 7. Virtual Network with a delegated subnet to Microsoft.Netapp/volumes resource. For more information, see [Guidelines for Azure NetApp Files network planning].(https://docs.microsoft.com/en-us/azure/azure-netapp-files/azure-netapp-files-network-topologies)

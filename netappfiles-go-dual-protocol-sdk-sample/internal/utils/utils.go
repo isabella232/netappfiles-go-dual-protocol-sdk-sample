@@ -12,12 +12,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"os"
 	"strings"
 	"syscall"
 
 	"github.com/Azure-Samples/netappfiles-go-dual-protocol-sdk-sample/netappfiles-go-dual-protocol-sdk-sample/internal/models"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 )
 
 // PrintHeader prints a header message
@@ -55,27 +54,12 @@ func GetTiBInBytes(size uint32) uint64 {
 func ReadAzureBasicInfoJSON(path string) (*models.AzureBasicInfo, error) {
 	infoJSON, err := ioutil.ReadFile(path)
 	if err != nil {
+		fmt.Printf("failed to read file: %v", err)
 		return &models.AzureBasicInfo{}, err
 	}
 	var info models.AzureBasicInfo
 	json.Unmarshal(infoJSON, &info)
 	return &info, nil
-}
-
-// ReadRootCACert reads the Azure Authentication json file json file and unmarshals it.
-func ReadRootCACert(certPath string) ([]byte, error) {
-	var err error
-
-	if _, err = os.Stat(certPath); os.IsNotExist(err) {
-		return nil, err
-	}
-
-	base64CertInfo, err := ioutil.ReadFile(certPath)
-	if err != nil {
-		return nil, err
-	}
-
-	return base64CertInfo, nil
 }
 
 // FindInSlice returns index greater than -1 and true if item is found
@@ -92,7 +76,7 @@ func FindInSlice(slice []string, val string) (int, bool) {
 // GetPassword gets a password
 func GetPassword(prompt string) string {
 	fmt.Print(prompt)
-	bytePassword, _ := terminal.ReadPassword(int(syscall.Stdin))
+	bytePassword, _ := term.ReadPassword(int(syscall.Stdin))
 	fmt.Println()
 	return strings.TrimSpace(string(bytePassword))
 }

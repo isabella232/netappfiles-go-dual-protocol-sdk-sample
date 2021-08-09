@@ -16,7 +16,6 @@ package main
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
 	"os"
 	"time"
@@ -33,19 +32,18 @@ const (
 )
 
 var (
-	shouldCleanUp          bool   = false
-	rootCACertFullFilePath string = "./rootca.cer" // Base64 encoded root ca certificate full file name
-	location               string = "westus"
-	resourceGroupName      string = "anf-smb-rg"
-	vnetResourceGroupName  string = "anf-smb-rg"
-	vnetName               string = "westus-vnet01"
-	subnetName             string = "anf-sn"
-	anfAccountName         string = haikunator.New(time.Now().UTC().UnixNano()).Haikunate()
-	capacityPoolName       string = "Pool01"
-	serviceLevel           string = "Standard"    // Valid service levels are Standard, Premium and Ultra
-	capacityPoolSizeBytes  int64  = 4398046511104 // 4TiB (minimum capacity pool size)
-	volumeSizeBytes        int64  = 107374182400  // 100GiB (minimum volume size)
-	protocolTypes                 = []string{
+	shouldCleanUp         bool   = false
+	location              string = "westus"
+	resourceGroupName     string = "anf-smb-rg"
+	vnetResourceGroupName string = "anf-smb-rg"
+	vnetName              string = "westus-vnet01"
+	subnetName            string = "anf-sn"
+	anfAccountName        string = haikunator.New(time.Now().UTC().UnixNano()).Haikunate()
+	capacityPoolName      string = "Pool01"
+	serviceLevel          string = "Standard"    // Valid service levels are Standard, Premium and Ultra
+	capacityPoolSizeBytes int64  = 4398046511104 // 4TiB (minimum capacity pool size)
+	volumeSizeBytes       int64  = 107374182400  // 100GiB (minimum volume size)
+	protocolTypes                = []string{
 		"CIFS",
 		"NFSv3",
 	} // Multi-protocol is only supported with CIFS/NFSv3 combination at this time
@@ -118,26 +116,14 @@ func main() {
 	// Azure NetApp Files Account creation
 	utils.ConsoleOutput("Creating Azure NetApp Files account...")
 
-	utils.ConsoleOutput(fmt.Sprintf("Loading %v certificate file...", rootCACertFullFilePath))
-	certContent, err := utils.ReadRootCACert(rootCACertFullFilePath)
-	if err != nil {
-		utils.ConsoleOutput(fmt.Sprintf("an error ocurred reading root ca certificate file: %v", err))
-		exitCode = 1
-		return
-	}
-
-	utils.ConsoleOutput("Encoding certificate contents as base64 string...")
-	certBase64Content := base64.StdEncoding.EncodeToString(certContent)
-
 	// Building Active Directory List - please note that only one AD configuration is permitted per subscription and region
 	activeDirectories := []netapp.ActiveDirectory{
-		netapp.ActiveDirectory{
-			DNS:                     &dnsList,
-			Domain:                  &adFQDN,
-			Username:                &domainJoinUserName,
-			Password:                &domainJoinUserPassword,
-			SmbServerName:           &smbServerNamePrefix,
-			ServerRootCACertificate: &certBase64Content,
+		{
+			DNS:           &dnsList,
+			Domain:        &adFQDN,
+			Username:      &domainJoinUserName,
+			Password:      &domainJoinUserPassword,
+			SmbServerName: &smbServerNamePrefix,
 		},
 	}
 
@@ -148,7 +134,7 @@ func main() {
 		return
 	}
 	acccountID = *account.ID
-	utils.ConsoleOutput(fmt.Sprintf("Account successfully created, resource id: %v", *account.ID))
+	utils.ConsoleOutput(fmt.Sprintf("Account successfully created, resource id: %v", acccountID))
 
 	// Capacity pool creation
 	utils.ConsoleOutput("Creating Capacity Pool...")

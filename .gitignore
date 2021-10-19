@@ -356,3 +356,5 @@ MigrationBackup/
 *.pfx
 
 example.go
+
+.vscode
